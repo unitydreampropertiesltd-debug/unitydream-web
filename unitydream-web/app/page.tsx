@@ -126,6 +126,27 @@ interface ProjectCostReport {
   netProfitLoss: number;
 }
 
+// নতুন মডিউলের জন্য টাইপ ডেফিনিশনসমূহ
+interface LeadItem {
+  id: string;
+  name: string;
+  phone: string;
+  project: string;
+  status: 'New' | 'Contacted' | 'Site Visit Scheduled' | 'Negotiation' | 'Booked';
+  agent: string;
+  date: string;
+}
+
+interface InventoryUnit {
+  id: string;
+  project: string;
+  block: string;
+  unitNo: string;
+  size: string;
+  price: number;
+  status: 'Available' | 'Booked' | 'Sold Out';
+}
+
 const MASTER_PHONE = '+8801689333000';
 
 const MASTER_SUPER_ADMIN: UserProfile = {
@@ -506,6 +527,22 @@ const INITIAL_RECEIVABLES: CustomerReceivable[] = [
   }
 ];
 
+// নতুন প্রাথমিক ডাটা: CRM Leads
+const INITIAL_LEADS: LeadItem[] = [
+  { id: 'LD-101', name: 'Md. Kamal Hossain', phone: '+8801711223344', project: 'Padma Eco-City', status: 'Site Visit Scheduled', agent: 'Tanvir Hossain', date: '2026-10-25' },
+  { id: 'LD-102', name: 'Tanveer Ahmed', phone: '+8801819988776', project: 'The Bay Icon Resort', status: 'New', agent: 'Unassigned', date: '2026-10-28' },
+  { id: 'LD-103', name: 'Mehzabin Chowdhury', phone: '+8801912345678', project: 'Dhaka Western Valley', status: 'Negotiation', agent: 'Samia Parvin Shanta', date: '2026-10-20' }
+];
+
+// নতুন প্রাথমিক ডাটা: Inventory
+const INITIAL_INVENTORY: InventoryUnit[] = [
+  { id: 'INV-01', project: 'Padma Eco-City', block: 'Block-A', unitNo: 'Plot # 12', size: '5 Katha', price: 5250000, status: 'Available' },
+  { id: 'INV-02', project: 'Padma Eco-City', block: 'Block-A', unitNo: 'Plot # 14', size: '5 Katha', price: 5250000, status: 'Booked' },
+  { id: 'INV-03', project: 'The Bay Icon Resort', block: 'Floor-4', unitNo: 'Suite # 401', size: '300 Sq Ft', price: 15000000, status: 'Sold Out' },
+  { id: 'INV-04', project: 'The Bay Icon Resort', block: 'Floor-4', unitNo: 'Suite # 402', size: '300 Sq Ft', price: 15000000, status: 'Sold Out' },
+  { id: 'INV-05', project: 'Dhaka Western Valley', block: 'Block-B', unitNo: 'Plot # 05', size: '5 Katha', price: 7250000, status: 'Available' }
+];
+
 // প্রজেক্ট ক্যাটালগ
 const projectsData = [
   {
@@ -609,14 +646,25 @@ export default function UnityDreamPortal() {
   const [receivables, setReceivables] = useState<CustomerReceivable[]>(INITIAL_RECEIVABLES);
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
 
+  // নতুন মডিউল স্টেটসমূহ
+  const [leads, setLeads] = useState<LeadItem[]>(INITIAL_LEADS);
+  const [inventory, setInventory] = useState<InventoryUnit[]>(INITIAL_INVENTORY);
+  const [newLeadName, setNewLeadName] = useState('');
+  const [newLeadPhone, setNewLeadPhone] = useState('');
+  const [newLeadProject, setNewLeadProject] = useState('Padma Eco-City');
+  const [newLeadAgent, setNewLeadAgent] = useState('Tanvir Hossain');
+
   // Responsive & Modal States
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [authModal, setAuthModal] = useState<'login' | 'register' | 'forgot' | null>(null);
   const [showERP, setShowERP] = useState(false);
   
-  // ট্যাব নেভিগেশন (১ম ট্যাব: পার্টনার লিস্ট)
-  const [activeTab, setActiveTab] = useState<'partner_list' | 'journal_ledger' | 'project_costing' | 'ar_installments' | 'tax_vat' | 'balance_sheet' | 'admin_users'>('partner_list');
+  // ট্যাব নেভিগেশন: আগের সব ট্যাব + নতুন ৫টি মডিউল ট্যাব
+  const [activeTab, setActiveTab] = useState<
+    'partner_list' | 'journal_ledger' | 'project_costing' | 'ar_installments' | 'tax_vat' | 'balance_sheet' | 'admin_users' | 'crm_module' | 'booking_module' | 'inventory_module' | 'portal_module' | 'agent_commission_module'
+  >('partner_list');
+
   const [selectedProjectForTerms, setSelectedProjectForTerms] = useState<typeof projectsData[0] | null>(null);
   const [viewDetailsUser, setViewDetailsUser] = useState<UserProfile | null>(null);
   const [editUserModal, setEditUserModal] = useState<UserProfile | null>(null);
@@ -675,6 +723,16 @@ export default function UnityDreamPortal() {
       try { setReceivables(JSON.parse(savedAr)); } catch (e) { console.error(e); }
     }
 
+    const savedLeads = localStorage.getItem('udp_erp_leads');
+    if (savedLeads) {
+      try { setLeads(JSON.parse(savedLeads)); } catch (e) { console.error(e); }
+    }
+
+    const savedInv = localStorage.getItem('udp_erp_inventory');
+    if (savedInv) {
+      try { setInventory(JSON.parse(savedInv)); } catch (e) { console.error(e); }
+    }
+
     const activeSession = localStorage.getItem('udp_active_session');
     if (activeSession) {
       try { setCurrentUser(JSON.parse(activeSession)); } catch (e) { console.error(e); }
@@ -689,6 +747,16 @@ export default function UnityDreamPortal() {
   const saveTxns = (list: ERPTransaction[]) => {
     setTransactions(list);
     localStorage.setItem('udp_erp_txns', JSON.stringify(list));
+  };
+
+  const saveLeads = (list: LeadItem[]) => {
+    setLeads(list);
+    localStorage.setItem('udp_erp_leads', JSON.stringify(list));
+  };
+
+  const saveInventory = (list: InventoryUnit[]) => {
+    setInventory(list);
+    localStorage.setItem('udp_erp_inventory', JSON.stringify(list));
   };
 
   const triggerWhatsApp = (phone: string, text: string) => {
@@ -995,6 +1063,29 @@ export default function UnityDreamPortal() {
     alert('ইউজারের তথ্য ও স্ট্যাটাস সফলভাবে আপডেট করা হয়েছে!');
   };
 
+  // ক. CRM নতুন লিড অ্যাড
+  const handleAddNewLead = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newLeadName.trim() || !newLeadPhone.trim()) {
+      alert('নাম এবং মোবাইল নম্বর দিন!');
+      return;
+    }
+    const newLead: LeadItem = {
+      id: `LD-${Math.floor(100 + Math.random() * 900)}`,
+      name: newLeadName.trim(),
+      phone: newLeadPhone.trim(),
+      project: newLeadProject,
+      status: 'New',
+      agent: newLeadAgent,
+      date: new Date().toISOString().split('T')[0]
+    };
+    const updated = [newLead, ...leads];
+    saveLeads(updated);
+    setNewLeadName('');
+    setNewLeadPhone('');
+    alert(`নতুন লিড (${newLead.id}) সিআরএম পাইপলাইনে যোগ করা হয়েছে!`);
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 font-sans flex flex-col justify-between">
       
@@ -1148,6 +1239,7 @@ export default function UnityDreamPortal() {
           {showERP && currentUser && (
             <div className="mt-6 pt-6 border-t border-slate-700/80 bg-slate-950/95 p-5 rounded-xl">
               
+              {/* মডিউল বাটনসমূহ: আগের ৭টি + নতুন ৫টি */}
               <div className="flex flex-wrap gap-2 border-b border-slate-800 pb-3 mb-5">
                 <button 
                   onClick={() => setActiveTab('partner_list')}
@@ -1155,7 +1247,52 @@ export default function UnityDreamPortal() {
                     activeTab === 'partner_list' ? 'bg-emerald-600 text-white shadow' : 'bg-slate-900 text-slate-400 hover:text-white'
                   }`}
                 >
-                  ⭐ পার্টনার লিস্ট (সেলস, কমিশন ও ডিটেইলস)
+                  ⭐ পার্টনার লিস্ট
+                </button>
+
+                <button 
+                  onClick={() => setActiveTab('crm_module')}
+                  className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
+                    activeTab === 'crm_module' ? 'bg-emerald-600 text-white shadow' : 'bg-slate-900 text-slate-400 hover:text-white'
+                  }`}
+                >
+                  🎯 ক. লিড ও সিআরএম
+                </button>
+
+                <button 
+                  onClick={() => setActiveTab('booking_module')}
+                  className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
+                    activeTab === 'booking_module' ? 'bg-emerald-600 text-white shadow' : 'bg-slate-900 text-slate-400 hover:text-white'
+                  }`}
+                >
+                  💳 খ. বুকিং ও পেমেন্ট
+                </button>
+
+                <button 
+                  onClick={() => setActiveTab('inventory_module')}
+                  className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
+                    activeTab === 'inventory_module' ? 'bg-emerald-600 text-white shadow' : 'bg-slate-900 text-slate-400 hover:text-white'
+                  }`}
+                >
+                  🗺️ গ. প্লট/ফ্ল্যাট ইনভেন্টরি
+                </button>
+
+                <button 
+                  onClick={() => setActiveTab('portal_module')}
+                  className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
+                    activeTab === 'portal_module' ? 'bg-emerald-600 text-white shadow' : 'bg-slate-900 text-slate-400 hover:text-white'
+                  }`}
+                >
+                  👤 ঘ. ক্লায়েন্ট সেলফ পোর্টাল
+                </button>
+
+                <button 
+                  onClick={() => setActiveTab('agent_commission_module')}
+                  className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
+                    activeTab === 'agent_commission_module' ? 'bg-emerald-600 text-white shadow' : 'bg-slate-900 text-slate-400 hover:text-white'
+                  }`}
+                >
+                  💼 ঙ. এজেন্ট ও কমিশন
                 </button>
 
                 {(currentUser.hasAccountsAccess || currentUser.isSuperAdmin) && (
@@ -1166,7 +1303,7 @@ export default function UnityDreamPortal() {
                         activeTab === 'journal_ledger' ? 'bg-amber-500 text-slate-950 font-bold' : 'bg-slate-900 text-slate-400 hover:text-white'
                       }`}
                     >
-                      📒 জেনারেল জার্নাল ও ভাউচার (GL/Debit-Credit)
+                      📒 জেনারেল জার্নাল
                     </button>
 
                     <button 
@@ -1175,7 +1312,7 @@ export default function UnityDreamPortal() {
                         activeTab === 'project_costing' ? 'bg-indigo-600 text-white' : 'bg-slate-900 text-slate-400 hover:text-white'
                       }`}
                     >
-                      🏗️ প্রজেক্ট কস্টিং, মেটেরিয়াল ও WIP
+                      🏗️ প্রজেক্ট কস্টিং ও WIP
                     </button>
 
                     <button 
@@ -1184,7 +1321,7 @@ export default function UnityDreamPortal() {
                         activeTab === 'ar_installments' ? 'bg-sky-600 text-white' : 'bg-slate-900 text-slate-400 hover:text-white'
                       }`}
                     >
-                      👥 কাস্টমার কিস্তি ও এজিং (AR)
+                      👥 কিস্তি ও এজিং (AR)
                     </button>
 
                     <button 
@@ -1193,7 +1330,7 @@ export default function UnityDreamPortal() {
                         activeTab === 'tax_vat' ? 'bg-rose-600 text-white' : 'bg-slate-900 text-slate-400 hover:text-white'
                       }`}
                     >
-                      ⚖️ বিডি ট্যাক্স ও ভ্যাট (TDS/VDS Mushak)
+                      ⚖️ ট্যাক্স ও ভ্যাট (NBR 6.3)
                     </button>
 
                     <button 
@@ -1214,7 +1351,7 @@ export default function UnityDreamPortal() {
                       activeTab === 'admin_users' ? 'bg-red-600 text-white' : 'bg-slate-900 text-slate-400 hover:text-white'
                     }`}
                   >
-                    👑 ইউজার ডাটাবেজ ও পারমিশন কন্ট্রোল
+                    👑 ইউজার ডাটাবেজ কন্ট্রোল
                   </button>
                 )}
               </div>
@@ -1300,6 +1437,309 @@ export default function UnityDreamPortal() {
                 </div>
               )}
 
+              {/* ক. Real Estate CRM মডিউল */}
+              {activeTab === 'crm_module' && (
+                <div className="text-xs space-y-4">
+                  <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
+                    <h4 className="text-sm font-bold text-emerald-400 mb-3 flex items-center gap-2">
+                      <span>🎯</span> ক. লিড ও কাস্টমার ম্যানেজমেন্ট (Real Estate CRM)
+                    </h4>
+                    <form onSubmit={handleAddNewLead} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                      <div>
+                        <label className="text-slate-400 block mb-1">ভিজিটর / ক্লায়েন্টের নাম</label>
+                        <input 
+                          type="text" 
+                          required
+                          placeholder="নাম লিখুন..." 
+                          value={newLeadName}
+                          onChange={(e) => setNewLeadName(e.target.value)}
+                          className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-slate-400 block mb-1">মোবাইল নম্বর</label>
+                        <input 
+                          type="tel" 
+                          required
+                          placeholder="মোবাইল নম্বর..." 
+                          value={newLeadPhone}
+                          onChange={(e) => setNewLeadPhone(e.target.value)}
+                          className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white font-mono"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-slate-400 block mb-1">আগ্রহী প্রজেক্ট</label>
+                        <select 
+                          value={newLeadProject}
+                          onChange={(e) => setNewLeadProject(e.target.value)}
+                          className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"
+                        >
+                          {projectsData.map(p => (
+                            <option key={p.id} value={p.name}>{p.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-slate-400 block mb-1">অ্যাসাইনড সেলস এজেন্ট</label>
+                        <select 
+                          value={newLeadAgent}
+                          onChange={(e) => setNewLeadAgent(e.target.value)}
+                          className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"
+                        >
+                          {usersList.filter(u => ['Agent', 'Business Partner', 'Team Leader'].includes(u.role)).map(u => (
+                            <option key={u.id} value={u.name}>{u.name} ({u.role})</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="sm:col-span-2 md:col-span-4 flex justify-end">
+                        <button type="submit" className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded">
+                          + নতুন লিড সংরক্ষণ করুন
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="border-b border-slate-800 text-slate-400 bg-slate-900/80">
+                          <th className="py-2.5 px-3">লিড আইডি</th>
+                          <th className="py-2.5 px-3">নাম</th>
+                          <th className="py-2.5 px-3">মোবাইল</th>
+                          <th className="py-2.5 px-3">প্রজেক্ট</th>
+                          <th className="py-2.5 px-3">পাইপলাইন স্ট্যাটাস</th>
+                          <th className="py-2.5 px-3">দায়িত্বপ্রাপ্ত এজেন্ট</th>
+                          <th className="py-2.5 px-3 text-center">সাইট ভিজিট</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y border-slate-800 text-slate-300">
+                        {leads.map((l) => (
+                          <tr key={l.id} className="hover:bg-slate-900/50">
+                            <td className="py-3 px-3 font-mono text-emerald-400">{l.id}</td>
+                            <td className="py-3 px-3 font-bold text-white">{l.name}</td>
+                            <td className="py-3 px-3 font-mono">{l.phone}</td>
+                            <td className="py-3 px-3">{l.project}</td>
+                            <td className="py-3 px-3">
+                              <span className="bg-slate-800 px-2 py-0.5 rounded text-[10px] text-amber-400 border border-slate-700">
+                                {l.status}
+                              </span>
+                            </td>
+                            <td className="py-3 px-3">{l.agent}</td>
+                            <td className="py-3 px-3 text-center">
+                              <button 
+                                onClick={() => triggerWhatsApp(l.phone, `*UNITY DREAM PROPERTIES LTD. সাইট ভিজিট ইনভাইটেশন*\nপ্রিয় ${l.name},\n${l.project} প্রকল্পের সাইট পরিদর্শনের জন্য আমরা আপনাকে আমন্ত্রণ জানাচ্ছি।\nহেল্পলাইন: ${MASTER_PHONE}`)}
+                                className="bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-1 rounded text-[10px] font-bold"
+                              >
+                                শিডিউল পাঠান
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* খ. বুকিং, কিস্তি ও কালেকশন মডিউল */}
+              {activeTab === 'booking_module' && (
+                <div className="text-xs space-y-4">
+                  <div className="bg-slate-900 p-4 rounded-xl border border-slate-800 flex justify-between items-center">
+                    <div>
+                      <h4 className="text-sm font-bold text-amber-400">
+                        💳 খ. বুকিং, কিস্তি ও পেমেন্ট গেটওয়ে কালেকশন
+                      </h4>
+                      <p className="text-slate-400 text-[11px]">
+                        বিকাশ, নগদ, ব্যাংক ও অটোমেটিক মানি রিসিট (PDF) জেনারেশন পোর্টাল
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="border-b border-slate-800 text-slate-400 bg-slate-900/80">
+                          <th className="py-2.5 px-3">গ্রাহক</th>
+                          <th className="py-2.5 px-3">প্রকল্প ও প্লট</th>
+                          <th className="py-2.5 px-3 text-right">মোট মূল্য</th>
+                          <th className="py-2.5 px-3 text-right">পরিশোধিত</th>
+                          <th className="py-2.5 px-3 text-right">বকেয়া</th>
+                          <th className="py-2.5 px-3 text-center">অনলাইন পেমেন্ট</th>
+                          <th className="py-2.5 px-3 text-center">মানি রিসিট</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y border-slate-800 text-slate-300">
+                        {receivables.map((r) => (
+                          <tr key={r.id} className="hover:bg-slate-900/50">
+                            <td className="py-3 px-3 font-bold text-white">{r.customerName}</td>
+                            <td className="py-3 px-3">{r.projectName} - {r.unitOrPlot}</td>
+                            <td className="py-3 px-3 text-right font-mono">{r.totalPrice.toLocaleString('bn-BD')} ৳</td>
+                            <td className="py-3 px-3 text-right text-emerald-400 font-bold font-mono">{r.paidAmount.toLocaleString('bn-BD')} ৳</td>
+                            <td className="py-3 px-3 text-right text-rose-400 font-bold font-mono">{r.dueAmount.toLocaleString('bn-BD')} ৳</td>
+                            <td className="py-3 px-3 text-center">
+                              <button 
+                                onClick={() => alert(`${r.customerName}-এর জন্য অনলাইন গেটওয়ে (bKash/Nagad/Card) চালু রয়েছে। পেমেন্ট লিঙ্ক পাঠানো হয়েছে।`)}
+                                className="bg-sky-600 hover:bg-sky-700 text-white px-2.5 py-1 rounded font-bold"
+                              >
+                                পেমেন্ট নিন
+                              </button>
+                            </td>
+                            <td className="py-3 px-3 text-center">
+                              <button 
+                                onClick={() => alert(`${r.customerName}-এর মানি রিসিট PDF প্রস্তুত হয়েছে এবং ডাউনলোড হচ্ছে।`)}
+                                className="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-2 py-1 rounded"
+                              >
+                                রিসিট PDF
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* গ. ইনভেন্টরি ও ফ্ল্যাট/প্লট ম্যাপিং */}
+              {activeTab === 'inventory_module' && (
+                <div className="text-xs space-y-4">
+                  <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
+                    <h4 className="text-sm font-bold text-teal-400 mb-1">
+                      🗺️ গ. ইনভেন্টরি ও ফ্ল্যাট/প্লট ম্যাপিং (Interactive Layout View)
+                    </h4>
+                    <p className="text-slate-400 text-[11px]">
+                      সবুজ: Available (ফাঁকা), হলুদ: Booked (বুকড), লাল: Sold Out (বিক্রিত)
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                    {inventory.map((inv) => (
+                      <div key={inv.id} className="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col justify-between">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <span className="font-bold text-white text-sm block">{inv.unitNo}</span>
+                            <span className="text-slate-400 text-[11px]">{inv.project} ({inv.block})</span>
+                          </div>
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                            inv.status === 'Available' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' :
+                            inv.status === 'Booked' ? 'bg-amber-950 text-amber-400 border border-amber-800' :
+                            'bg-rose-950 text-rose-400 border border-rose-800'
+                          }`}>
+                            {inv.status}
+                          </span>
+                        </div>
+                        <div className="mt-4 pt-3 border-t border-slate-800 flex justify-between items-end">
+                          <span className="text-slate-400 text-[11px]">সাইজ: {inv.size}</span>
+                          <span className="font-bold text-emerald-400">{inv.price.toLocaleString('bn-BD')} ৳</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* ঘ. ক্লায়েন্ট ও ইনভেস্টর পোর্টাল */}
+              {activeTab === 'portal_module' && (
+                <div className="text-xs space-y-4">
+                  <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
+                    <h4 className="text-sm font-bold text-indigo-400 mb-1">
+                      👤 ঘ. ক্লায়েন্ট ও ইনভেস্টর নিজস্ব পোর্টাল (Customer Portal)
+                    </h4>
+                    <p className="text-slate-400 text-[11px]">
+                      লগইনকৃত ক্লায়েন্টের ক্রয়কৃত প্লট/ফ্ল্যাটের লাইভ স্ট্যাটাস, বাকি কিস্তি এবং কনস্ট্রাকশন রিপোর্ট
+                    </p>
+                  </div>
+
+                  {currentUser.customerPurchase ? (
+                    <div className="bg-slate-900 p-5 rounded-xl border border-slate-800 space-y-3">
+                      <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+                        <span className="font-bold text-white text-sm">প্রজেক্ট: {currentUser.customerPurchase.projectName}</span>
+                        <span className="text-emerald-400 font-mono font-bold">ইউনিট: {currentUser.customerPurchase.unitOrPlot}</span>
+                      </div>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2">
+                        <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
+                          <span className="text-slate-400 block text-[10px]">মোট চুক্তি মূল্য</span>
+                          <span className="font-bold text-white text-sm">{currentUser.customerPurchase.totalPrice.toLocaleString('bn-BD')} ৳</span>
+                        </div>
+                        <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
+                          <span className="text-slate-400 block text-[10px]">মোট পরিশোধিত</span>
+                          <span className="font-bold text-emerald-400 text-sm">{currentUser.customerPurchase.paidAmount.toLocaleString('bn-BD')} ৳</span>
+                        </div>
+                        <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
+                          <span className="text-slate-400 block text-[10px]">মোট বকেয়া কিস্তি</span>
+                          <span className="font-bold text-rose-400 text-sm">{currentUser.customerPurchase.dueAmount.toLocaleString('bn-BD')} ৳</span>
+                        </div>
+                        <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
+                          <span className="text-slate-400 block text-[10px]">কনস্ট্রাকশন অগ্রগতি</span>
+                          <span className="font-bold text-amber-400 text-sm">৭০% সম্পন্ন</span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-8 text-center bg-slate-900 rounded-xl border border-slate-800 text-slate-400">
+                      আপনার প্রোফাইলে সরাসরি কোনো পার্সোনাল বুকিং ডাটা এসাইন করা নেই অথবা আপনি এডমিন/পার্টনার রোলে রয়েছেন।
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ঙ. এজেন্ট ও কমিশন ম্যানেজমেন্ট */}
+              {activeTab === 'agent_commission_module' && (
+                <div className="text-xs space-y-4">
+                  <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
+                    <h4 className="text-sm font-bold text-purple-400 mb-1">
+                      💼 ঙ. এজেন্ট ও কমিশন ম্যানেজমেন্ট (Broker / Affiliate System)
+                    </h4>
+                    <p className="text-slate-400 text-[11px]">
+                      মাঠপর্যায়ের সেলস এক্সিকিউটিভ ও রেফারেল এজেন্টদের হিসাব এবং অটো-ক্যালকুলেশন
+                    </p>
+                  </div>
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="border-b border-slate-800 text-slate-400 bg-slate-900/80">
+                          <th className="py-2.5 px-3">এজেন্ট আইডি ও নাম</th>
+                          <th className="py-2.5 px-3">পদবী</th>
+                          <th className="py-2.5 px-3 text-right">সেলস (কাঠা/শেয়ার)</th>
+                          <th className="py-2.5 px-3 text-right">অর্জিত কমিশন</th>
+                          <th className="py-2.5 px-3 text-center">হোল্ড স্থিতি</th>
+                          <th className="py-2.5 px-3 text-center">কমিশন ডিসবার্স</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y border-slate-800 text-slate-300">
+                        {usersList.filter(u => ['Agent', 'Business Partner', 'Team Leader', 'AGM', 'DGM'].includes(u.role)).slice(0, 15).map((a) => (
+                          <tr key={a.id} className="hover:bg-slate-900/50">
+                            <td className="py-3 px-3">
+                              <span className="font-bold text-white block">{a.name}</span>
+                              <span className="font-mono text-emerald-400 text-[10px]">{a.id}</span>
+                            </td>
+                            <td className="py-3 px-3">{a.role}</td>
+                            <td className="py-3 px-3 text-right font-bold text-white">{a.salesKatha} কাঠা</td>
+                            <td className="py-3 px-3 text-right font-bold text-amber-400">{a.totalEarnings.toLocaleString('bn-BD')} ৳</td>
+                            <td className="py-3 px-3 text-center">
+                              {a.heldEarnings > 0 ? (
+                                <span className="bg-rose-950 text-rose-400 px-2 py-0.5 rounded font-bold">{a.heldEarnings.toLocaleString('bn-BD')} ৳ হোল্ড</span>
+                              ) : (
+                                <span className="text-emerald-400 font-bold">ক্লিয়ার</span>
+                              )}
+                            </td>
+                            <td className="py-3 px-3 text-center">
+                              <button 
+                                onClick={() => triggerWhatsApp(a.phone, `*UNITY DREAM PROPERTIES LTD. কমিশন বিবরণী*\nএজেন্ট: ${a.name} (${a.id})\nমোট কমিশন: ${a.totalEarnings.toLocaleString('bn-BD')} ৳\nপেমেন্ট প্রসেসিং চলছে।\nহেল্পলাইন: ${MASTER_PHONE}`)}
+                                className="bg-purple-600 hover:bg-purple-700 text-white px-2.5 py-1 rounded font-bold"
+                              >
+                                পে স্লিপ পাঠান
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
               {/* TAB 2: জেনারেল জার্নাল ও ভাউচার */}
               {activeTab === 'journal_ledger' && (currentUser.hasAccountsAccess || currentUser.isSuperAdmin) && (
                 <div>
@@ -1370,7 +1810,7 @@ export default function UnityDreamPortal() {
                         <input 
                           type="text" 
                           required 
-                          placeholder="ভাউচারের সুনির্দিষ্ট বিবরণ দিন..."
+                          placeholder="ভাউচারের সুনির্দিষ্ট বিবরণ দিন..." 
                           value={voucherDesc}
                           onChange={(e) => setVoucherDesc(e.target.value)}
                           className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"
@@ -1383,7 +1823,7 @@ export default function UnityDreamPortal() {
                           type="number" 
                           required 
                           min="1"
-                          placeholder="পরিমাণ"
+                          placeholder="পরিমাণ" 
                           value={voucherGross || ''}
                           onChange={(e) => setVoucherGross(Number(e.target.value))}
                           className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white font-bold text-amber-400"
