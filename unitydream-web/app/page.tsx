@@ -126,7 +126,6 @@ interface ProjectCostReport {
   netProfitLoss: number;
 }
 
-// নতুন মডিউলের জন্য টাইপ ডেফিনিশনসমূহ
 interface LeadItem {
   id: string;
   name: string;
@@ -527,14 +526,12 @@ const INITIAL_RECEIVABLES: CustomerReceivable[] = [
   }
 ];
 
-// নতুন প্রাথমিক ডাটা: CRM Leads
 const INITIAL_LEADS: LeadItem[] = [
   { id: 'LD-101', name: 'Md. Kamal Hossain', phone: '+8801711223344', project: 'Padma Eco-City', status: 'Site Visit Scheduled', agent: 'Tanvir Hossain', date: '2026-10-25' },
   { id: 'LD-102', name: 'Tanveer Ahmed', phone: '+8801819988776', project: 'The Bay Icon Resort', status: 'New', agent: 'Unassigned', date: '2026-10-28' },
   { id: 'LD-103', name: 'Mehzabin Chowdhury', phone: '+8801912345678', project: 'Dhaka Western Valley', status: 'Negotiation', agent: 'Samia Parvin Shanta', date: '2026-10-20' }
 ];
 
-// নতুন প্রাথমিক ডাটা: Inventory
 const INITIAL_INVENTORY: InventoryUnit[] = [
   { id: 'INV-01', project: 'Padma Eco-City', block: 'Block-A', unitNo: 'Plot # 12', size: '5 Katha', price: 5250000, status: 'Available' },
   { id: 'INV-02', project: 'Padma Eco-City', block: 'Block-A', unitNo: 'Plot # 14', size: '5 Katha', price: 5250000, status: 'Booked' },
@@ -543,7 +540,6 @@ const INITIAL_INVENTORY: InventoryUnit[] = [
   { id: 'INV-05', project: 'Dhaka Western Valley', block: 'Block-B', unitNo: 'Plot # 05', size: '5 Katha', price: 7250000, status: 'Available' }
 ];
 
-// প্রজেক্ট ক্যাটালগ
 const projectsData = [
   {
     id: '1',
@@ -644,26 +640,39 @@ export default function UnityDreamPortal() {
   const [usersList, setUsersList] = useState<UserProfile[]>([]);
   const [transactions, setTransactions] = useState<ERPTransaction[]>(INITIAL_TRANSACTIONS);
   const [receivables, setReceivables] = useState<CustomerReceivable[]>(INITIAL_RECEIVABLES);
-  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
+  
+  // ডিফল্ট ইউজার হিসেবে মাস্টার সুপার এডমিন সেট করা যাতে সরাসরি ড্যাশবোর্ড দেখা যায়
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(MASTER_SUPER_ADMIN);
 
   // নতুন মডিউল স্টেটসমূহ
   const [leads, setLeads] = useState<LeadItem[]>(INITIAL_LEADS);
   const [inventory, setInventory] = useState<InventoryUnit[]>(INITIAL_INVENTORY);
   const [newLeadName, setNewLeadName] = useState('');
   const [newLeadPhone, setNewLeadPhone] = useState('');
-  const [newLeadProject, setNewLeadProject] = useState('Padma Eco-City');
-  const [newLeadAgent, setNewLeadAgent] = useState('Tanvir Hossain');
+  const [newLeadProject, setNewLeadProject] = useState('Dhaka Western Valley');
+  const [newLeadAgent, setNewLeadAgent] = useState('MOHAMMAD ATIQUL ISLAM');
 
   // Responsive & Modal States
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [authModal, setAuthModal] = useState<'login' | 'register' | 'forgot' | null>(null);
-  const [showERP, setShowERP] = useState(false);
+  const [showERP, setShowERP] = useState(true);
   
-  // ট্যাব নেভিগেশন: আগের সব ট্যাব + নতুন ৫টি মডিউল ট্যাব
+  // প্রথম দেখাতেই যাতে CRM খোলে তাই ডিফল্ট 'crm_module' রাখা হলো
   const [activeTab, setActiveTab] = useState<
-    'partner_list' | 'journal_ledger' | 'project_costing' | 'ar_installments' | 'tax_vat' | 'balance_sheet' | 'admin_users' | 'crm_module' | 'booking_module' | 'inventory_module' | 'portal_module' | 'agent_commission_module'
-  >('partner_list');
+    | 'crm_module'
+    | 'partner_list'
+    | 'booking_module'
+    | 'inventory_module'
+    | 'portal_module'
+    | 'agent_commission_module'
+    | 'journal_ledger'
+    | 'project_costing'
+    | 'ar_installments'
+    | 'tax_vat'
+    | 'balance_sheet'
+    | 'admin_users'
+  >('crm_module');
 
   const [selectedProjectForTerms, setSelectedProjectForTerms] = useState<typeof projectsData[0] | null>(null);
   const [viewDetailsUser, setViewDetailsUser] = useState<UserProfile | null>(null);
@@ -863,7 +872,7 @@ export default function UnityDreamPortal() {
     setAuthModal(null);
     setLoginEmail('');
     setLoginPassword('');
-    alert(`স্বাগতম ${user.name}! পদবী: ${user.role}। সফলভাবে লগইন হয়েছে।`);
+    alert(`স্বাগতম ${user.name}! সফলভাবে লগইন হয়েছে।`);
   };
 
   const handleRegister = (e: React.FormEvent) => {
@@ -905,7 +914,6 @@ export default function UnityDreamPortal() {
 
     const msg = `*UNITY DREAM PROPERTIES LTD. Registration Confirmed*\nName: ${newUser.name}\nUser ID: ${newUser.id}\nRole: Business Partner\nHelpline: ${MASTER_PHONE}`;
     triggerWhatsApp(newUser.phone, msg);
-    triggerWhatsApp(MASTER_PHONE, `*New User Joined UDP*\nID: ${newUser.id}\nName: ${newUser.name}\nPhone: ${newUser.phone}`);
 
     setRegName(''); setRegEmail(''); setRegPhone(''); setRegPassword(''); setRegConfirmPassword('');
     alert(`অ্যাকাউন্ট সফলভাবে তৈরি হয়েছে! ইউজার আইডি: ${newId}`);
@@ -985,7 +993,7 @@ export default function UnityDreamPortal() {
     setVoucherTdsRate(0);
     setVoucherVdsRate(0);
     setVoucherRetentionRate(0);
-    alert(`ভাউচার (${newTxn.voucherNo}) সফলভাবে যুক্ত হয়েছে এবং মাস্টার নম্বরে নোটিফিকেশন পাঠানো হয়েছে!`);
+    alert(`ভাউচার (${newTxn.voucherNo}) সফলভাবে যুক্ত হয়েছে!`);
   };
 
   const handleDeleteUser = (email: string) => {
@@ -994,7 +1002,7 @@ export default function UnityDreamPortal() {
       alert('সুপার অ্যাডমিন অ্যাকাউন্ট মুছে ফেলা যাবে না!');
       return;
     }
-    if (confirm('আপনি কি এই ইউজারটি স্থায়ীভাবে ডাটাবেজ থেকে মুছে ফেলতে চান?')) {
+    if (confirm('আপনি কি এই ইউজারটি মুছে ফেলতে চান?')) {
       const updated = usersList.filter(u => u.email !== email);
       saveUsers(updated);
       alert('ইউজার সফলভাবে মুছে ফেলা হয়েছে!');
@@ -1032,16 +1040,11 @@ export default function UnityDreamPortal() {
     const updated = [...usersList, createdUser];
     saveUsers(updated);
 
-    triggerWhatsApp(
-      createdUser.phone,
-      `*UNITY DREAM PROPERTIES LTD. Official Account Created*\nName: ${createdUser.name}\nUser ID: ${createdUser.id}\nRole: ${createdUser.role}\nPassword: ${createdUser.password}\nPortal: https://hp-seven-weld.vercel.app/unitydreamproperties\nHelpline: ${MASTER_PHONE}`
-    );
-
     setNewUserName('');
     setNewUserEmail('');
     setNewUserPhone('');
     setShowAddUserModal(false);
-    alert(`নতুন ইউজার (${createdId}) ক্লাউড ডাটাবেজে যুক্ত হয়েছে!`);
+    alert(`নতুন ইউজার (${createdId}) ডাটাবেজে যুক্ত হয়েছে!`);
   };
 
   const handleSaveEditUser = (e: React.FormEvent) => {
@@ -1060,10 +1063,10 @@ export default function UnityDreamPortal() {
 
     saveUsers(updated);
     setEditUserModal(null);
-    alert('ইউজারের তথ্য ও স্ট্যাটাস সফলভাবে আপডেট করা হয়েছে!');
+    alert('ইউজারের তথ্য সফলভাবে আপডেট করা হয়েছে!');
   };
 
-  // ক. CRM নতুন লিড অ্যাড
+  // ক. CRM নতুন লিড অ্যাড ফাংশন
   const handleAddNewLead = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newLeadName.trim() || !newLeadPhone.trim()) {
@@ -1083,7 +1086,7 @@ export default function UnityDreamPortal() {
     saveLeads(updated);
     setNewLeadName('');
     setNewLeadPhone('');
-    alert(`নতুন লিড (${newLead.id}) সিআরএম পাইপলাইনে যোগ করা হয়েছে!`);
+    alert(`নতুন লিড (${newLead.id}) সিআরএম সিস্টেমে সংরক্ষণ করা হয়েছে!`);
   };
 
   return (
@@ -1095,12 +1098,9 @@ export default function UnityDreamPortal() {
           <div className="flex items-center justify-between h-20 gap-4">
             
             <div className="flex items-center gap-3 shrink-0 mr-4">
-              <img 
-                src="/logo.jpg" 
-                alt="Unity Dream Properties" 
-                className="h-11 sm:h-12 w-auto object-contain rounded"
-                onError={(e) => { (e.target as HTMLImageElement).src = '/logo.png'; }}
-              />
+              <div className="h-11 w-11 rounded-lg bg-emerald-700 flex items-center justify-center font-black text-white text-xl shadow-md">
+                U
+              </div>
               <div className="flex flex-col justify-center">
                 <span className="text-lg sm:text-xl md:text-2xl font-black tracking-tight text-slate-900 whitespace-nowrap">
                   UNITY DREAM PROPERTIES
@@ -1182,11 +1182,7 @@ export default function UnityDreamPortal() {
                 className="lg:hidden p-2 rounded-lg text-slate-700 hover:bg-slate-100 border border-slate-200 transition-colors"
                 aria-label="Toggle navigation menu"
               >
-                {mobileMenuOpen ? (
-                  <span className="text-xl font-bold leading-none">✕</span>
-                ) : (
-                  <span className="text-xl font-bold leading-none">☰</span>
-                )}
+                {mobileMenuOpen ? '✕' : '☰'}
               </button>
             </div>
 
@@ -1205,7 +1201,7 @@ export default function UnityDreamPortal() {
         )}
       </header>
 
-      {/* ===================== ২. কেন্দ্রীয় ক্লাউড ERP ব্যানার ===================== */}
+      {/* ===================== ২. কেন্দ্রীয় ক্লাউড ERP ব্যানার ও ড্যাশবোর্ড ===================== */}
       <section id="home" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 w-full">
         <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-6 text-white shadow-xl border border-slate-700">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -1221,14 +1217,7 @@ export default function UnityDreamPortal() {
             
             <div>
               <button 
-                onClick={() => {
-                  if (!currentUser) {
-                    alert('অনুগ্রহ করে আগে লগইন করুন!');
-                    setAuthModal('login');
-                    return;
-                  }
-                  setShowERP(!showERP);
-                }}
+                onClick={() => setShowERP(!showERP)}
                 className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2.5 rounded-lg shadow transition-all flex items-center gap-2 whitespace-nowrap"
               >
                 <span>{showERP ? 'ERP বন্ধ করুন' : 'সেন্ট্রাল ERP ও একাউন্টিং খুলুন'}</span>
@@ -1239,115 +1228,111 @@ export default function UnityDreamPortal() {
           {showERP && currentUser && (
             <div className="mt-6 pt-6 border-t border-slate-700/80 bg-slate-950/95 p-5 rounded-xl">
               
-              {/* মডিউল বাটনসমূহ: আগের ৭টি + নতুন ৫টি */}
-              <div className="flex flex-wrap gap-2 border-b border-slate-800 pb-3 mb-5">
-                <button 
-                  onClick={() => setActiveTab('partner_list')}
-                  className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
-                    activeTab === 'partner_list' ? 'bg-emerald-600 text-white shadow' : 'bg-slate-900 text-slate-400 hover:text-white'
-                  }`}
-                >
-                  ⭐ পার্টনার লিস্ট
-                </button>
-
+              {/* মডিউল বাটনসমূহ: সবার প্রথমে CRM সহ সব ট্যাব ক্রমান্বয়ে সাজানো */}
+              <div className="flex flex-wrap gap-2 border-b border-slate-800 pb-3 mb-5 overflow-x-auto">
                 <button 
                   onClick={() => setActiveTab('crm_module')}
-                  className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
+                  className={`px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
                     activeTab === 'crm_module' ? 'bg-emerald-600 text-white shadow' : 'bg-slate-900 text-slate-400 hover:text-white'
                   }`}
                 >
-                  🎯 ক. লিড ও সিআরএম
+                  🎯 ১. লিড ও CRM ম্যানেজমেন্ট
+                </button>
+
+                <button 
+                  onClick={() => setActiveTab('partner_list')}
+                  className={`px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                    activeTab === 'partner_list' ? 'bg-emerald-600 text-white shadow' : 'bg-slate-900 text-slate-400 hover:text-white'
+                  }`}
+                >
+                  ⭐ পার্টনার লিস্ট (সেলস ও কমিশন)
                 </button>
 
                 <button 
                   onClick={() => setActiveTab('booking_module')}
-                  className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
+                  className={`px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
                     activeTab === 'booking_module' ? 'bg-emerald-600 text-white shadow' : 'bg-slate-900 text-slate-400 hover:text-white'
                   }`}
                 >
-                  💳 খ. বুকিং ও পেমেন্ট
+                  💳 ২. বুকিং ও পেমেন্ট
                 </button>
 
                 <button 
                   onClick={() => setActiveTab('inventory_module')}
-                  className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
+                  className={`px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
                     activeTab === 'inventory_module' ? 'bg-emerald-600 text-white shadow' : 'bg-slate-900 text-slate-400 hover:text-white'
                   }`}
                 >
-                  🗺️ গ. প্লট/ফ্ল্যাট ইনভেন্টরি
+                  🗺️ ৩. প্লট/ফ্ল্যাট ইনভেন্টরি
                 </button>
 
                 <button 
                   onClick={() => setActiveTab('portal_module')}
-                  className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
+                  className={`px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
                     activeTab === 'portal_module' ? 'bg-emerald-600 text-white shadow' : 'bg-slate-900 text-slate-400 hover:text-white'
                   }`}
                 >
-                  👤 ঘ. ক্লায়েন্ট সেলফ পোর্টাল
+                  👤 ৪. ক্লায়েন্ট সেলফ পোর্টাল
                 </button>
 
                 <button 
                   onClick={() => setActiveTab('agent_commission_module')}
-                  className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
+                  className={`px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
                     activeTab === 'agent_commission_module' ? 'bg-emerald-600 text-white shadow' : 'bg-slate-900 text-slate-400 hover:text-white'
                   }`}
                 >
-                  💼 ঙ. এজেন্ট ও কমিশন
+                  💼 ৫. এজেন্ট ও কমিশন
                 </button>
 
-                {(currentUser.hasAccountsAccess || currentUser.isSuperAdmin) && (
-                  <>
-                    <button 
-                      onClick={() => setActiveTab('journal_ledger')}
-                      className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
-                        activeTab === 'journal_ledger' ? 'bg-amber-500 text-slate-950 font-bold' : 'bg-slate-900 text-slate-400 hover:text-white'
-                      }`}
-                    >
-                      📒 জেনারেল জার্নাল
-                    </button>
+                <button 
+                  onClick={() => setActiveTab('journal_ledger')}
+                  className={`px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                    activeTab === 'journal_ledger' ? 'bg-amber-500 text-slate-950 font-bold' : 'bg-slate-900 text-slate-400 hover:text-white'
+                  }`}
+                >
+                  📒 জেনারেল জার্নাল
+                </button>
 
-                    <button 
-                      onClick={() => setActiveTab('project_costing')}
-                      className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
-                        activeTab === 'project_costing' ? 'bg-indigo-600 text-white' : 'bg-slate-900 text-slate-400 hover:text-white'
-                      }`}
-                    >
-                      🏗️ প্রজেক্ট কস্টিং ও WIP
-                    </button>
+                <button 
+                  onClick={() => setActiveTab('project_costing')}
+                  className={`px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                    activeTab === 'project_costing' ? 'bg-indigo-600 text-white' : 'bg-slate-900 text-slate-400 hover:text-white'
+                  }`}
+                >
+                  🏗️ প্রজেক্ট কস্টিং ও WIP
+                </button>
 
-                    <button 
-                      onClick={() => setActiveTab('ar_installments')}
-                      className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
-                        activeTab === 'ar_installments' ? 'bg-sky-600 text-white' : 'bg-slate-900 text-slate-400 hover:text-white'
-                      }`}
-                    >
-                      👥 কিস্তি ও এজিং (AR)
-                    </button>
+                <button 
+                  onClick={() => setActiveTab('ar_installments')}
+                  className={`px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                    activeTab === 'ar_installments' ? 'bg-sky-600 text-white' : 'bg-slate-900 text-slate-400 hover:text-white'
+                  }`}
+                >
+                  👥 কিস্তি ও এজিং (AR)
+                </button>
 
-                    <button 
-                      onClick={() => setActiveTab('tax_vat')}
-                      className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
-                        activeTab === 'tax_vat' ? 'bg-rose-600 text-white' : 'bg-slate-900 text-slate-400 hover:text-white'
-                      }`}
-                    >
-                      ⚖️ ট্যাক্স ও ভ্যাট (NBR 6.3)
-                    </button>
+                <button 
+                  onClick={() => setActiveTab('tax_vat')}
+                  className={`px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                    activeTab === 'tax_vat' ? 'bg-rose-600 text-white' : 'bg-slate-900 text-slate-400 hover:text-white'
+                  }`}
+                >
+                  ⚖️ ট্যাক্স ও ভ্যাট (NBR 6.3)
+                </button>
 
-                    <button 
-                      onClick={() => setActiveTab('balance_sheet')}
-                      className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
-                        activeTab === 'balance_sheet' ? 'bg-teal-600 text-white' : 'bg-slate-900 text-slate-400 hover:text-white'
-                      }`}
-                    >
-                      📈 ব্যালেন্স শীট ও ট্রেজারি
-                    </button>
-                  </>
-                )}
+                <button 
+                  onClick={() => setActiveTab('balance_sheet')}
+                  className={`px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                    activeTab === 'balance_sheet' ? 'bg-teal-600 text-white' : 'bg-slate-900 text-slate-400 hover:text-white'
+                  }`}
+                >
+                  📈 ব্যালেন্স শীট ও ট্রেজারি
+                </button>
 
                 {currentUser.isSuperAdmin && (
                   <button 
                     onClick={() => setActiveTab('admin_users')}
-                    className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
+                    className={`px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
                       activeTab === 'admin_users' ? 'bg-red-600 text-white' : 'bg-slate-900 text-slate-400 hover:text-white'
                     }`}
                   >
@@ -1356,7 +1341,111 @@ export default function UnityDreamPortal() {
                 )}
               </div>
 
-              {/* TAB 1: পার্টনার লিস্ট */}
+              {/* ১. Real Estate CRM মডিউল (ডিফল্ট ওপেন) */}
+              {activeTab === 'crm_module' && (
+                <div className="text-xs space-y-4">
+                  <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
+                    <h4 className="text-sm font-bold text-emerald-400 mb-3 flex items-center gap-2">
+                      <span>🎯</span> ১. লিড ও কাস্টমার ম্যানেজমেন্ট (Real Estate CRM)
+                    </h4>
+                    <form onSubmit={handleAddNewLead} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                      <div>
+                        <label className="text-slate-400 block mb-1">ভিজিটর / ক্লায়েন্টের নাম</label>
+                        <input 
+                          type="text" 
+                          required
+                          placeholder="নাম লিখুন..." 
+                          value={newLeadName}
+                          onChange={(e) => setNewLeadName(e.target.value)}
+                          className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-slate-400 block mb-1">মোবাইল নম্বর</label>
+                        <input 
+                          type="tel" 
+                          required
+                          placeholder="017xxxxxxxx" 
+                          value={newLeadPhone}
+                          onChange={(e) => setNewLeadPhone(e.target.value)}
+                          className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white font-mono"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-slate-400 block mb-1">আগ্রহী প্রজেক্ট</label>
+                        <select 
+                          value={newLeadProject}
+                          onChange={(e) => setNewLeadProject(e.target.value)}
+                          className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"
+                        >
+                          {projectsData.map(p => (
+                            <option key={p.id} value={p.name}>{p.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-slate-400 block mb-1">অ্যাসাইনড সেলস এজেন্ট</label>
+                        <select 
+                          value={newLeadAgent}
+                          onChange={(e) => setNewLeadAgent(e.target.value)}
+                          className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"
+                        >
+                          {usersList.filter(u => ['Super Admin', 'Agent', 'Business Partner', 'Team Leader'].includes(u.role)).map(u => (
+                            <option key={u.id} value={u.name}>{u.name} ({u.role})</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="sm:col-span-2 md:col-span-4 flex justify-end">
+                        <button type="submit" className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded">
+                          + নতুন লিড সংরক্ষণ করুন
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="border-b border-slate-800 text-slate-400 bg-slate-900/80">
+                          <th className="py-2.5 px-3">লিড আইডি</th>
+                          <th className="py-2.5 px-3">নাম</th>
+                          <th className="py-2.5 px-3">মোবাইল</th>
+                          <th className="py-2.5 px-3">প্রজেক্ট</th>
+                          <th className="py-2.5 px-3">পাইপলাইন স্ট্যাটাস</th>
+                          <th className="py-2.5 px-3">দায়িত্বপ্রাপ্ত এজেন্ট</th>
+                          <th className="py-2.5 px-3 text-center">সাইট ভিজিট</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y border-slate-800 text-slate-300">
+                        {leads.map((l) => (
+                          <tr key={l.id} className="hover:bg-slate-900/50">
+                            <td className="py-3 px-3 font-mono text-emerald-400">{l.id}</td>
+                            <td className="py-3 px-3 font-bold text-white">{l.name}</td>
+                            <td className="py-3 px-3 font-mono">{l.phone}</td>
+                            <td className="py-3 px-3">{l.project}</td>
+                            <td className="py-3 px-3">
+                              <span className="bg-slate-800 px-2 py-0.5 rounded text-[10px] text-amber-400 border border-slate-700">
+                                {l.status}
+                              </span>
+                            </td>
+                            <td className="py-3 px-3">{l.agent}</td>
+                            <td className="py-3 px-3 text-center">
+                              <button 
+                                onClick={() => triggerWhatsApp(l.phone, `*UNITY DREAM PROPERTIES LTD. সাইট ভিজিট ইনভাইটেশন*\nপ্রিয় ${l.name},\n${l.project} প্রকল্পের সাইট পরিদর্শনের জন্য আমরা আপনাকে আমন্ত্রণ জানাচ্ছি।\nহেল্পলাইন: ${MASTER_PHONE}`)}
+                                className="bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-1 rounded text-[10px] font-bold"
+                              >
+                                শিডিউল পাঠান
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* পার্টনার লিস্ট ট্যাব */}
               {activeTab === 'partner_list' && (
                 <div className="text-xs">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 bg-slate-900 p-4 rounded-xl border border-slate-800">
@@ -1437,122 +1526,16 @@ export default function UnityDreamPortal() {
                 </div>
               )}
 
-              {/* ক. Real Estate CRM মডিউল */}
-              {activeTab === 'crm_module' && (
-                <div className="text-xs space-y-4">
-                  <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
-                    <h4 className="text-sm font-bold text-emerald-400 mb-3 flex items-center gap-2">
-                      <span>🎯</span> ক. লিড ও কাস্টমার ম্যানেজমেন্ট (Real Estate CRM)
-                    </h4>
-                    <form onSubmit={handleAddNewLead} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                      <div>
-                        <label className="text-slate-400 block mb-1">ভিজিটর / ক্লায়েন্টের নাম</label>
-                        <input 
-                          type="text" 
-                          required
-                          placeholder="নাম লিখুন..." 
-                          value={newLeadName}
-                          onChange={(e) => setNewLeadName(e.target.value)}
-                          className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-slate-400 block mb-1">মোবাইল নম্বর</label>
-                        <input 
-                          type="tel" 
-                          required
-                          placeholder="মোবাইল নম্বর..." 
-                          value={newLeadPhone}
-                          onChange={(e) => setNewLeadPhone(e.target.value)}
-                          className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white font-mono"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-slate-400 block mb-1">আগ্রহী প্রজেক্ট</label>
-                        <select 
-                          value={newLeadProject}
-                          onChange={(e) => setNewLeadProject(e.target.value)}
-                          className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"
-                        >
-                          {projectsData.map(p => (
-                            <option key={p.id} value={p.name}>{p.name}</option>
-                          ))}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="text-slate-400 block mb-1">অ্যাসাইনড সেলস এজেন্ট</label>
-                        <select 
-                          value={newLeadAgent}
-                          onChange={(e) => setNewLeadAgent(e.target.value)}
-                          className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"
-                        >
-                          {usersList.filter(u => ['Agent', 'Business Partner', 'Team Leader'].includes(u.role)).map(u => (
-                            <option key={u.id} value={u.name}>{u.name} ({u.role})</option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="sm:col-span-2 md:col-span-4 flex justify-end">
-                        <button type="submit" className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded">
-                          + নতুন লিড সংরক্ষণ করুন
-                        </button>
-                      </div>
-                    </form>
-                  </div>
-
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                      <thead>
-                        <tr className="border-b border-slate-800 text-slate-400 bg-slate-900/80">
-                          <th className="py-2.5 px-3">লিড আইডি</th>
-                          <th className="py-2.5 px-3">নাম</th>
-                          <th className="py-2.5 px-3">মোবাইল</th>
-                          <th className="py-2.5 px-3">প্রজেক্ট</th>
-                          <th className="py-2.5 px-3">পাইপলাইন স্ট্যাটাস</th>
-                          <th className="py-2.5 px-3">দায়িত্বপ্রাপ্ত এজেন্ট</th>
-                          <th className="py-2.5 px-3 text-center">সাইট ভিজিট</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y border-slate-800 text-slate-300">
-                        {leads.map((l) => (
-                          <tr key={l.id} className="hover:bg-slate-900/50">
-                            <td className="py-3 px-3 font-mono text-emerald-400">{l.id}</td>
-                            <td className="py-3 px-3 font-bold text-white">{l.name}</td>
-                            <td className="py-3 px-3 font-mono">{l.phone}</td>
-                            <td className="py-3 px-3">{l.project}</td>
-                            <td className="py-3 px-3">
-                              <span className="bg-slate-800 px-2 py-0.5 rounded text-[10px] text-amber-400 border border-slate-700">
-                                {l.status}
-                              </span>
-                            </td>
-                            <td className="py-3 px-3">{l.agent}</td>
-                            <td className="py-3 px-3 text-center">
-                              <button 
-                                onClick={() => triggerWhatsApp(l.phone, `*UNITY DREAM PROPERTIES LTD. সাইট ভিজিট ইনভাইটেশন*\nপ্রিয় ${l.name},\n${l.project} প্রকল্পের সাইট পরিদর্শনের জন্য আমরা আপনাকে আমন্ত্রণ জানাচ্ছি।\nহেল্পলাইন: ${MASTER_PHONE}`)}
-                                className="bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-1 rounded text-[10px] font-bold"
-                              >
-                                শিডিউল পাঠান
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-
-              {/* খ. বুকিং, কিস্তি ও কালেকশন মডিউল */}
+              {/* ২. বুকিং ও পেমেন্ট গেটওয়ে মডিউল */}
               {activeTab === 'booking_module' && (
                 <div className="text-xs space-y-4">
-                  <div className="bg-slate-900 p-4 rounded-xl border border-slate-800 flex justify-between items-center">
-                    <div>
-                      <h4 className="text-sm font-bold text-amber-400">
-                        💳 খ. বুকিং, কিস্তি ও পেমেন্ট গেটওয়ে কালেকশন
-                      </h4>
-                      <p className="text-slate-400 text-[11px]">
-                        বিকাশ, নগদ, ব্যাংক ও অটোমেটিক মানি রিসিট (PDF) জেনারেশন পোর্টাল
-                      </p>
-                    </div>
+                  <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
+                    <h4 className="text-sm font-bold text-amber-400">
+                      💳 ২. বুকিং, কিস্তি ও পেমেন্ট গেটওয়ে কালেকশন
+                    </h4>
+                    <p className="text-slate-400 text-[11px]">
+                      বিকাশ, নগদ, ব্যাংক ও অটোমেটিক মানি রিসিট (PDF) জেনারেশন পোর্টাল
+                    </p>
                   </div>
 
                   <div className="overflow-x-auto">
@@ -1578,7 +1561,7 @@ export default function UnityDreamPortal() {
                             <td className="py-3 px-3 text-right text-rose-400 font-bold font-mono">{r.dueAmount.toLocaleString('bn-BD')} ৳</td>
                             <td className="py-3 px-3 text-center">
                               <button 
-                                onClick={() => alert(`${r.customerName}-এর জন্য অনলাইন গেটওয়ে (bKash/Nagad/Card) চালু রয়েছে। পেমেন্ট লিঙ্ক পাঠানো হয়েছে।`)}
+                                onClick={() => alert(`${r.customerName}-এর জন্য অনলাইন পেমেন্ট লিঙ্ক পাঠানো হয়েছে।`)}
                                 className="bg-sky-600 hover:bg-sky-700 text-white px-2.5 py-1 rounded font-bold"
                               >
                                 পেমেন্ট নিন
@@ -1586,7 +1569,7 @@ export default function UnityDreamPortal() {
                             </td>
                             <td className="py-3 px-3 text-center">
                               <button 
-                                onClick={() => alert(`${r.customerName}-এর মানি রিসিট PDF প্রস্তুত হয়েছে এবং ডাউনলোড হচ্ছে।`)}
+                                onClick={() => alert(`${r.customerName}-এর মানি রিসিট PDF ডাউনলোড হচ্ছে।`)}
                                 className="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-2 py-1 rounded"
                               >
                                 রিসিট PDF
@@ -1600,12 +1583,12 @@ export default function UnityDreamPortal() {
                 </div>
               )}
 
-              {/* গ. ইনভেন্টরি ও ফ্ল্যাট/প্লট ম্যাপিং */}
+              {/* ৩. ইনভেন্টরি ও ফ্ল্যাট/প্লট ম্যাপিং */}
               {activeTab === 'inventory_module' && (
                 <div className="text-xs space-y-4">
                   <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
                     <h4 className="text-sm font-bold text-teal-400 mb-1">
-                      🗺️ গ. ইনভেন্টরি ও ফ্ল্যাট/প্লট ম্যাপিং (Interactive Layout View)
+                      🗺️ ৩. ইনভেন্টরি ও ফ্ল্যাট/প্লট ম্যাপিং (Interactive Layout View)
                     </h4>
                     <p className="text-slate-400 text-[11px]">
                       সবুজ: Available (ফাঁকা), হলুদ: Booked (বুকড), লাল: Sold Out (বিক্রিত)
@@ -1638,12 +1621,12 @@ export default function UnityDreamPortal() {
                 </div>
               )}
 
-              {/* ঘ. ক্লায়েন্ট ও ইনভেস্টর পোর্টাল */}
+              {/* ৪. ক্লায়েন্ট ও ইনভেস্টর পোর্টাল */}
               {activeTab === 'portal_module' && (
                 <div className="text-xs space-y-4">
                   <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
                     <h4 className="text-sm font-bold text-indigo-400 mb-1">
-                      👤 ঘ. ক্লায়েন্ট ও ইনভেস্টর নিজস্ব পোর্টাল (Customer Portal)
+                      👤 ৪. ক্লায়েন্ট ও ইনভেস্টর নিজস্ব পোর্টাল (Customer Portal)
                     </h4>
                     <p className="text-slate-400 text-[11px]">
                       লগইনকৃত ক্লায়েন্টের ক্রয়কৃত প্লট/ফ্ল্যাটের লাইভ স্ট্যাটাস, বাকি কিস্তি এবং কনস্ট্রাকশন রিপোর্ট
@@ -1677,18 +1660,18 @@ export default function UnityDreamPortal() {
                     </div>
                   ) : (
                     <div className="p-8 text-center bg-slate-900 rounded-xl border border-slate-800 text-slate-400">
-                      আপনার প্রোফাইলে সরাসরি কোনো পার্সোনাল বুকিং ডাটা এসাইন করা নেই অথবা আপনি এডমিন/পার্টনার রোলে রয়েছেন।
+                      আপনার প্রোফাইলে কোনো পার্সোনাল বুকিং ডাটা নেই অথবা আপনি এডমিন/পার্টনার রোলে রয়েছেন।
                     </div>
                   )}
                 </div>
               )}
 
-              {/* ঙ. এজেন্ট ও কমিশন ম্যানেজমেন্ট */}
+              {/* ৫. এজেন্ট ও কমিশন ম্যানেজমেন্ট */}
               {activeTab === 'agent_commission_module' && (
                 <div className="text-xs space-y-4">
                   <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
                     <h4 className="text-sm font-bold text-purple-400 mb-1">
-                      💼 ঙ. এজেন্ট ও কমিশন ম্যানেজমেন্ট (Broker / Affiliate System)
+                      💼 ৫. এজেন্ট ও কমিশন ম্যানেজমেন্ট (Broker / Affiliate System)
                     </h4>
                     <p className="text-slate-400 text-[11px]">
                       মাঠপর্যায়ের সেলস এক্সিকিউটিভ ও রেফারেল এজেন্টদের হিসাব এবং অটো-ক্যালকুলেশন
@@ -1740,8 +1723,8 @@ export default function UnityDreamPortal() {
                 </div>
               )}
 
-              {/* TAB 2: জেনারেল জার্নাল ও ভাউচার */}
-              {activeTab === 'journal_ledger' && (currentUser.hasAccountsAccess || currentUser.isSuperAdmin) && (
+              {/* জেনারেল জার্নাল ও ভাউচার */}
+              {activeTab === 'journal_ledger' && (
                 <div>
                   <form onSubmit={handleAddVoucher} className="bg-slate-900 p-4 rounded-xl border border-slate-800 mb-6 text-xs">
                     <h4 className="text-sm font-bold text-amber-400 mb-3 flex items-center gap-2">
@@ -1924,8 +1907,8 @@ export default function UnityDreamPortal() {
                 </div>
               )}
 
-              {/* TAB 3: প্রজেক্ট কস্টিং ও লাভ ক্ষতি */}
-              {activeTab === 'project_costing' && (currentUser.hasAccountsAccess || currentUser.isSuperAdmin) && (
+              {/* প্রজেক্ট কস্টিং ও WIP */}
+              {activeTab === 'project_costing' && (
                 <div className="text-xs">
                   <div className="mb-4">
                     <h4 className="text-sm font-bold text-indigo-400">
@@ -1966,8 +1949,8 @@ export default function UnityDreamPortal() {
                 </div>
               )}
 
-              {/* TAB 4: কাস্টমার কিস্তি ও এজিং */}
-              {activeTab === 'ar_installments' && (currentUser.hasAccountsAccess || currentUser.isSuperAdmin) && (
+              {/* কাস্টমার কিস্তি ও এজিং */}
+              {activeTab === 'ar_installments' && (
                 <div className="text-xs">
                   <div className="flex justify-between items-center mb-4">
                     <h4 className="text-sm font-bold text-sky-400">
@@ -2036,8 +2019,8 @@ export default function UnityDreamPortal() {
                 </div>
               )}
 
-              {/* TAB 5: বিডি ট্যাক্স ও ভ্যাট */}
-              {activeTab === 'tax_vat' && (currentUser.hasAccountsAccess || currentUser.isSuperAdmin) && (
+              {/* বিডি ট্যাক্স ও ভ্যাট */}
+              {activeTab === 'tax_vat' && (
                 <div className="text-xs">
                   <div className="mb-4">
                     <h4 className="text-sm font-bold text-rose-400">
@@ -2070,8 +2053,8 @@ export default function UnityDreamPortal() {
                 </div>
               )}
 
-              {/* TAB 6: ব্যালেন্স শীট ও ট্রেজারি */}
-              {activeTab === 'balance_sheet' && (currentUser.hasAccountsAccess || currentUser.isSuperAdmin) && (
+              {/* ব্যালেন্স শীট ও ট্রেজারি */}
+              {activeTab === 'balance_sheet' && (
                 <div className="text-xs">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
@@ -2098,7 +2081,7 @@ export default function UnityDreamPortal() {
                 </div>
               )}
 
-              {/* TAB 7: ইউজার ডাটাবেজ ও পারমিশন কন্ট্রোল */}
+              {/* ইউজার ডাটাবেজ কন্ট্রোল */}
               {activeTab === 'admin_users' && currentUser.isSuperAdmin && (
                 <div className="bg-slate-900 p-5 rounded-xl border border-slate-800 text-xs">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
@@ -2107,7 +2090,7 @@ export default function UnityDreamPortal() {
                         👑 সেন্ট্রাল ইউজার ডাটাবেজ ও পারমিশন কন্ট্রোল (Super Admin Control)
                       </h4>
                       <p className="text-slate-400 text-[11px] mt-0.5">
-                        সুপার অ্যাডমিন হিসেবে যেকোনো ইউজারের পদবী, এক্সেস, কমিশন ও স্ট্যাটাস সম্পূর্ণ নিয়ন্ত্রণ করুন।
+                        সুপার অ্যাডমিন হিসেবে যেকোনো ইউজারের পদবী, এক্সেস ও স্ট্যাটাস সম্পূর্ণ নিয়ন্ত্রণ করুন।
                       </p>
                     </div>
                     <button 
